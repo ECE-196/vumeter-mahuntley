@@ -11,9 +11,16 @@ status.direction = Direction.OUTPUT
 
 led_pins = [
     board.IO21,
-    board.IO26, # type: ignore
+    board.IO26,  
     board.IO47,
-    # do the rest...
+    board.IO33, 
+    board.IO34,
+    board.IO48,
+    board.IO35,
+    board.IO36,
+    board.IO37,
+    board.IO38,
+    board.IO39,
 ]
 
 leds = [DigitalInOut(pin) for pin in led_pins]
@@ -24,14 +31,19 @@ for led in leds:
 # main loop
 while True:
     volume = microphone.value
-
     print(volume)
 
-    leds[0].value = not leds[0].value
-    leds[1].value = not leds[0].value
+    # Adjusted linear thresholds starting above the noise floor of 15000
+    # Assuming the desired range for LED activation starts from 15000 to a max value, e.g., 48000
+    # Calculate incremental steps based on the range and number of LEDs
+    base_threshold = 15000
+    max_value = 48000
+    step = (max_value - base_threshold) / len(leds)
+    volume_thresholds = [base_threshold + step * i for i in range(len(leds))]
 
-    sleep(1)
-
-    # instead of blinking,
-    # how can you make the LEDs
-    # turn on like a volume meter?
+    # Update LED states based on volume
+    for i, led in enumerate(leds):
+        if volume > volume_thresholds[i]:
+            led.value = True
+        else:
+            led.value = False
